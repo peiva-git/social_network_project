@@ -89,6 +89,7 @@
 import axios from "axios";
 import {serverURL} from "@/js/main";
 import {useIsUserAuthenticatedStore} from "@/js/stores/useIsUserAuthenticatedStore";
+import bootstrap from "/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js";
 
 export default {
   name: 'RegistrationModalDialog',
@@ -135,17 +136,15 @@ export default {
         bio: this.newUser.bio,
         username: this.newUser.username,
         password: this.newUser.password
-      }, {
-        headers: {"Accept": "application/json", "Content-Type": "application/json"}
       }).then(response => {
         const modal = bootstrap.Modal.getInstance(document.getElementById("registrationModal"));
+        document.getElementById("registrationModal").addEventListener("hidden.bs.modal", () => {
+          this.$router.replace({name: "UserProfile", params: {userId: "myaccount"}});
+        });
         modal.hide();
         document.cookie = `token=${response.data.token}`;
         this.store.setUserAuthenticated(true);
         this.store.setAuthenticatedUsername(this.newUser.username);
-        document.getElementById("registrationModal").addEventListener("hidden.bs.modal", () => {
-          this.$router.replace({name: "UserProfile", params: {userId: "myaccount"}});
-        });
       }).catch(error => {
         this.registrationUsernameClass = "form-control is-invalid";
         if (error.response) {
@@ -160,6 +159,7 @@ export default {
           this.registrationUsernameErrorMessage = "Errore lato client, riprovare";
         }
         console.log(error.config);
+        console.log(error);
       });
     },
     isRegistrationUsernameNotEmpty() {
