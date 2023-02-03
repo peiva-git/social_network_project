@@ -33,7 +33,6 @@
 import axios from "axios";
 import {serverURL} from "@/js/main";
 import {useMessagePostedStore} from "@/js/stores/useMessagePostedStore";
-import bootstrap from "/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js";
 
 export default {
   name: "NewMessageModalDialog",

@@ -1,5 +1,5 @@
 <template>
-  <div class="container-fluid" id="user-profile-container">
+  <div class="container-fluid">
     <div class="row pt-4" v-if="loading">
       <div class="col-3">
         <img src="/node_modules/bootstrap-icons/icons/person-circle.svg" class="rounded mx-auto d-block mb-4"
@@ -13,27 +13,24 @@
       </div>
     </div>
     <div class="position-absolute top-50 start-50 translate-middle" v-if="error">
-      <div class="d-flex align-items-center">
-        <div class="flex-shrink-0 me-3">
-          <svg xmlns="http://www.w3.org/2000/svg" height="100%" width="100%" fill="currentColor"
+      <div class="d-flex align-items-center flex-wrap">
+        <div class="flex-shrink-1 me-3 mb-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" fill="currentColor"
                class="bi bi-exclamation-diamond-fill" viewBox="0 0 16 16">
             <path
                 d="M9.05.435c-.58-.58-1.52-.58-2.1 0L.436 6.95c-.58.58-.58 1.519 0 2.098l6.516 6.516c.58.58 1.519.58 2.098 0l6.516-6.516c.58-.58.58-1.519 0-2.098L9.05.435zM8 4c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995A.905.905 0 0 1 8 4zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
           </svg>
         </div>
-        <div class="d-flex" style="height: 300px;">
-          <div class="vr"></div>
-        </div>
-        <div class="flex-grow-1 ms-3 text-wrap" style="width: 300px;">
+        <div class="flex-grow-1 ms-3 text-wrap">
           <span class="fs-1">{{ error.status }}</span>
           <h5 class="fs-4">{{ error.statusText }}</h5>
           <p class="fs-5">{{ error.data.message }}</p>
         </div>
       </div>
     </div>
-    <div class="row vh-100" v-if="user">
-      <div class="col-3 pt-4">
-        <img src="/node_modules/bootstrap-icons/icons/person-circle.svg" class="rounded mx-auto d-block mb-4"
+    <div id="userProfileContainer" v-if="user">
+      <div class="pt-4 px-2" id="userInfo">
+        <img src="/node_modules/bootstrap-icons/icons/person-circle.svg" class="rounded mx-auto mb-4"
              style="height: 200px; width: 100%;" alt="Default account image"/>
         <p class="fs-1 text-center">@{{ user.username }}</p>
         <p class="fs-4 text-center">{{ user.name }} {{ user.surname }}</p>
@@ -74,11 +71,10 @@
           </div>
         </div>
       </div>
-      <div class="col-6 pt-4">
+      <div class="pt-4" id="userMessages">
         <user-messages :user="user" v-if="!showFeed"/>
         <user-feed :user="user" v-if="showFeed"/>
       </div>
-      <div class="col-3 pt-4"></div>
     </div>
   </div>
 
@@ -194,4 +190,41 @@ export default {
 </script>
 
 <style scoped>
+/* medium bootstrap breakpoint at 768px */
+@media screen and (min-width: 768px) {
+  #userProfileContainer {
+    display: grid;
+    grid-template-areas: "sidebar messages emptySidebar";
+    grid-template-columns: 3fr 6fr 3fr;
+  }
+
+  #userInfo {
+    grid-area: sidebar;
+    position: fixed;
+    width: 25%;
+  }
+
+  #userMessages {
+    grid-area: messages;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  #userProfileContainer {
+    display: grid;
+    grid-template-areas:
+        "userInfo"
+        "messages";
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  #userInfo {
+    grid-area: userInfo;
+  }
+
+  #userMessages {
+    grid-area: messages;
+  }
+}
 </style>

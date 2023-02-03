@@ -14,9 +14,9 @@
       <div class="valid-feedback">Password valida!</div>
       <div class="invalid-feedback">{{ loginPasswordErrorMessage }}</div>
     </div>
-    <div class="container text-center">
-      <button type="submit" class="btn btn-primary me-3 mb-3" @click.prevent="submitLoginForm">Login</button>
-      <button type="button" class="btn btn-secondary mb-3" data-bs-toggle="modal" data-bs-target="#registrationModal">
+    <div class="d-flex text-center justify-content-between">
+      <button type="submit" class="btn btn-primary me-2 mb-3 flex-grow-1" @click.prevent="submitLoginForm">Login</button>
+      <button type="button" class="btn btn-secondary mb-3 flex-grow-1" data-bs-toggle="modal" data-bs-target="#registrationModal">
         Registrazione
       </button>
     </div>
