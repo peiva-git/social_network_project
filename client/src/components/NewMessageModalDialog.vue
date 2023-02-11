@@ -33,7 +33,6 @@
 <script>
 import axios from "axios";
 import {serverURL} from "@/js/main";
-import bootstrap from "/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js";
 
 export default {
   name: "NewMessageModalDialog",
@@ -72,6 +71,8 @@ export default {
         this.isValid = false;
         this.isInvalid = false;
       }).catch(error => {
+        this.isInvalid = true;
+        this.isValid = false;
         if (error.response) {
           this.errorMessage = "Errore lato server, riprovare";
         } else if (error.request) {

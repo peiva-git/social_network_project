@@ -91,7 +91,6 @@ import {useIsUserAuthenticatedStore} from "@/js/stores/useIsUserAuthenticatedSto
 import NewMessageModalDialog from "@/components/NewMessageModalDialog.vue";
 import UserFeed from "@/components/UserFeed.vue";
 import AlertToast from "@/components/AlertToast.vue";
-import bootstrap from "/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js";
 
 export default {
   name: "UserProfile",

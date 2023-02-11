@@ -74,7 +74,6 @@ import axios from "axios";
 import {serverURL} from "@/js/main";
 import {useIsUserAuthenticatedStore} from "@/js/stores/useIsUserAuthenticatedStore";
 import AlertToast from "@/components/AlertToast.vue";
-import bootstrap from "/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js";
 
 export default {
   name: 'UserMessages',
