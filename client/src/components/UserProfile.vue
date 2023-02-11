@@ -3,7 +3,7 @@
     <div class="row pt-4" v-if="loading">
       <div class="col-3">
         <img src="/node_modules/bootstrap-icons/icons/person-circle.svg" class="rounded mx-auto d-block mb-4"
-             style="height: 200px; width: 100%;" alt="Default account image"/>
+             id="userIcon" alt="Default account image"/>
         <p class="fs-1 placeholder-glow text-center"><span class="placeholder col-5"></span></p>
         <p class="fs-4 placeholder-glow text-center">
           <span class="placeholder col-2"></span>
@@ -30,8 +30,8 @@
     </div>
     <div id="userProfileContainer" v-if="user">
       <div class="pt-4 px-2" id="userInfo">
-        <img src="/node_modules/bootstrap-icons/icons/person-circle.svg" class="rounded mx-auto mb-4"
-             style="height: 200px; width: 100%;" alt="Default account image"/>
+        <img src="/node_modules/bootstrap-icons/icons/person-circle.svg" class="rounded mx-auto mb-4" id="userIcon"
+             alt="Default account image"/>
         <p class="fs-1 text-center">@{{ user.username }}</p>
         <p class="fs-4 text-center">{{ user.name }} {{ user.surname }}</p>
         <button type="button" class="btn btn-primary col-auto mb-3"
@@ -72,14 +72,15 @@
         </div>
       </div>
       <div class="pt-4" id="userMessages">
-        <user-messages :user="user" v-if="!showFeed"/>
+        <user-messages :new-posted-message="newPostedMessage" :user="user" v-if="!showFeed"/>
         <user-feed :user="user" v-if="showFeed"/>
       </div>
     </div>
   </div>
 
   <!-- New message modal-->
-  <new-message-modal-dialog/>
+  <new-message-modal-dialog @new-message-posted="(message) => newPostedMessage = message"/>
+  <alert-toast :error-type="alertError" :error-description="alertErrorDescription"/>
 </template>
 
 <script>
@@ -89,17 +90,22 @@ import UserMessages from "@/components/UserMessages.vue";
 import {useIsUserAuthenticatedStore} from "@/js/stores/useIsUserAuthenticatedStore";
 import NewMessageModalDialog from "@/components/NewMessageModalDialog.vue";
 import UserFeed from "@/components/UserFeed.vue";
+import AlertToast from "@/components/AlertToast.vue";
+import bootstrap from "/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js";
 
 export default {
   name: "UserProfile",
-  components: {UserFeed, NewMessageModalDialog, UserMessages},
+  components: {AlertToast, UserFeed, NewMessageModalDialog, UserMessages},
   data() {
     return {
       loading: false,
       error: null,
       user: null,
       followers: [],
-      showFeed: false
+      showFeed: false,
+      newPostedMessage: null,
+      alertError: "",
+      alertErrorDescription: ""
     }
   },
   setup() {
@@ -119,8 +125,6 @@ export default {
   },
   computed: {
     isUserFollowed() {
-      console.log(this.followers);
-      console.log(this.store.getAuthenticatedUsername);
       return !!this.followers.includes(this.store.getAuthenticatedUsername);
     },
     userFeedButtonText() {
@@ -151,9 +155,17 @@ export default {
         if (error.response) {
           this.error = error.response;
         } else if (error.request) {
-          console.log(error.request);
+          this.error = {};
+          this.error.status = "Errore lato server";
+          this.error.statusText = "Server non raggiungibile";
+          this.error.data = {};
+          this.error.data.message = "Server al momento non raggiungibile, riprovare più tardi";
         } else {
-          console.log(error);
+          this.error = {};
+          this.error.status = "Errore lato client";
+          this.error.statusText = "Richiesta non inviata";
+          this.error.data = {};
+          this.error.data.message = "Errore durante l'invio della richiesta, riprovare";
         }
       });
       if (this.$route.params.userId !== "myaccount") {
@@ -162,7 +174,18 @@ export default {
             this.followers = response.data;
           }
         }).catch(error => {
-          console.log(error);
+          if (error.response) {
+            this.alertError = `Error: ${error.response.statusText}`
+            this.alertErrorDescription = `Error while getting user's followers: ${error.response.data.message}`;
+          } else if (error.request) {
+            this.alertError = "Errore lato server";
+            this.alertErrorDescription = "Errore durante il download dei follower dell'utente, riprovare più tardi";
+          } else {
+            this.alertError = "Errore lato client";
+            this.alertErrorDescription = "Errore durante il download dei follower dell'utente, riprovare più tardi";
+          }
+          const toastAlert = new bootstrap.Toast(document.querySelector(".toast"));
+          toastAlert.show();
         });
       }
     },
@@ -173,19 +196,40 @@ export default {
             const toRemoveIndex = this.followers.indexOf(this.store.getAuthenticatedUsername);
             this.followers.splice(toRemoveIndex, 1);
           }).catch(error => {
-            console.log(error);
+            if (error.response) {
+              this.alertError = `Error: ${error.response.statusText}`;
+              this.alertErrorDescription = `Error while unfollow user: ${error.response.data.message}`;
+            } else if (error.request) {
+              this.alertError = "Errore lato server";
+              this.alertErrorDescription = "Errore durante la rimozione del follow all'utente, riprovare più tardi";
+            } else {
+              this.alertError = "Errore lato client";
+              this.alertErrorDescription = "Errore durante la rimozione del follow all'utente, riprovare più tardi";
+            }
+            const toastAlert = new bootstrap.Toast(document.querySelector(".toast"));
+            toastAlert.show();
           });
         } else {
           axios.post(serverURL + "/api/social/followers/" + this.$route.params.userId).then(() => {
             this.followers.push(this.store.getAuthenticatedUsername);
           }).catch(error => {
-            console.log(error);
+            if (error.response) {
+              this.alertError = `Error: ${error.response.statusText}`
+              this.alertErrorDescription = `Error while following user: ${error.response.data.message}`;
+            } else if (error.request) {
+              this.alertError = "Errore lato server";
+              this.alertErrorDescription = "Errore durante l'aggiunta del follow all'utente, riprovare più tardi";
+            } else {
+              this.alertError = "Errore lato client";
+              this.alertErrorDescription = "Errore durante l'aggiunta del follow all'utente, riprovare più tardi";
+            }
+            const toastAlert = new bootstrap.Toast(document.querySelector(".toast"));
+            toastAlert.show();
           });
         }
       }
     }
   }
-
 }
 </script>
 
@@ -226,5 +270,10 @@ export default {
   #userMessages {
     grid-area: messages;
   }
+}
+
+#userIcon {
+  height: 200px;
+  width: 100%;
 }
 </style>

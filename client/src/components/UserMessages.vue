@@ -34,7 +34,7 @@
   </div>
   <div class="container-fluid" v-if="messages">
     <h3 class="mb-4" v-if="messages.length > 0">I miei messaggi</h3>
-    <h3 class="mb-4" v-if="messages.length === 0">Nessun messaggio da mostrare</h3>
+    <h3 class="mb-4 text-center" v-if="messages.length === 0">Nessun messaggio da mostrare</h3>
     <div class="row mb-4" v-for="message in messages">
       <div class="col-12">
         <div class="card">
@@ -67,35 +67,35 @@
       </div>
     </div>
   </div>
+  <alert-toast :error-type="alertError" :error-description="alertErrorDescription"/>
 </template>
 <script>
 import axios from "axios";
 import {serverURL} from "@/js/main";
-import {useMessagePostedStore} from "@/js/stores/useMessagePostedStore";
 import {useIsUserAuthenticatedStore} from "@/js/stores/useIsUserAuthenticatedStore";
+import AlertToast from "@/components/AlertToast.vue";
+import bootstrap from "/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js";
 
 export default {
   name: 'UserMessages',
+  components: {AlertToast},
   data() {
     return {
       loading: null,
       error: null,
-      messages: null
+      messages: null,
+      alertError: "",
+      alertErrorDescription: ""
     }
   },
   props: {
-    user: {}
-  },
-  computed: {
-    messagePostedAlertToggled() {
-      return this.store.newMessagePosted;
-    }
+    user: {},
+    newPostedMessage: {}
   },
   setup() {
-    const store = useMessagePostedStore();
-    const authStore = useIsUserAuthenticatedStore();
+    const store = useIsUserAuthenticatedStore();
     return {
-      store, authStore
+      store: store
     }
   },
   created() {
@@ -108,9 +108,16 @@ export default {
     )
   },
   watch: {
-    messagePostedAlertToggled: {
-      handler() {
-        this.fetchMessages();
+    newPostedMessage: {
+      handler(newMessage) {
+        if (newMessage) {
+          this.messages.push(newMessage);
+          this.messages.sort((firstMessage, secondMessage) => {
+            const firstMessageDate = new Date(firstMessage.date);
+            const secondMessageDate = new Date(secondMessage.date);
+            return secondMessageDate.getTime() - firstMessageDate.getTime();
+          });
+        }
       },
       immediate: true
     }
@@ -127,13 +134,7 @@ export default {
           this.messages.sort((firstMessage, secondMessage) => {
             const firstMessageDate = new Date(firstMessage.date);
             const secondMessageDate = new Date(secondMessage.date);
-            if (firstMessageDate.getTime() > secondMessageDate.getTime()) {
-              return -1;
-            } else if (firstMessageDate.getTime() < secondMessageDate.getTime()) {
-              return 1;
-            } else {
-              return 0;
-            }
+            return secondMessageDate.getTime() - firstMessageDate.getTime();
           });
         } else {
           this.messages = [];
@@ -143,29 +144,59 @@ export default {
         if (error.response) {
           this.error = error.response;
         } else if (error.request) {
-          console.log(error.request);
+          this.error = {};
+          this.error.status = "Errore lato server";
+          this.error.statusText = "Server non raggiungibile";
+          this.error.data = {};
+          this.error.data.message = "Server al momento non raggiungibile, riprovare più tardi";
         } else {
-          console.log(error);
+          this.error = {};
+          this.error.status = "Errore lato client";
+          this.error.statusText = "Richiesta non inviata";
+          this.error.data = {};
+          this.error.data.message = "Errore durante l'invio della richiesta, riprovare";
         }
       });
     },
     isMessageLiked(message) {
-      return !!message.likes.includes(this.authStore.getAuthenticatedUsername);
+      return !!message.likes.includes(this.store.getAuthenticatedUsername);
     },
     toggleLike(message) {
-      if (this.authStore.isUserAuthenticated) {
+      if (this.store.isUserAuthenticated) {
         if (this.isMessageLiked(message)) {
           axios.delete(serverURL + "/api/social/like/" + message._id).then(() => {
-            const indexToRemove = message.likes.indexOf(this.authStore.getAuthenticatedUsername);
+            const indexToRemove = message.likes.indexOf(this.store.getAuthenticatedUsername);
             message.likes.splice(indexToRemove, 1);
           }).catch(error => {
-            console.log(error);
+            if (error.response) {
+              this.alertError = `Error: ${error.response.statusText}`;
+              this.alertErrorDescription = `Error while removing like: ${error.response.data.message}`;
+            } else if (error.request) {
+              this.alertError = "Errore lato server";
+              this.alertErrorDescription = "Errore durante la rimozione del like, riprovare più tardi";
+            } else {
+              this.alertError = "Errore lato client";
+              this.alertErrorDescription = "Errore durante la rimozione del like, riprovare più tardi";
+            }
+            const toastAlert = new bootstrap.Toast(document.querySelector(".toast"));
+            toastAlert.show();
           });
         } else {
           axios.post(serverURL + "/api/social/like/" + message._id).then(() => {
-            message.likes.push(this.authStore.getAuthenticatedUsername);
+            message.likes.push(this.store.getAuthenticatedUsername);
           }).catch(error => {
-            console.log(error);
+            if (error.response) {
+              this.alertError = `Error: ${error.response.statusText}`
+              this.alertErrorDescription = `Error while adding like: ${error.response.data.message}`;
+            } else if (error.request) {
+              this.alertError = "Errore lato server";
+              this.alertErrorDescription = "Errore durante l'aggiunta del like, riprovare più tardi";
+            } else {
+              this.alertError = "Errore lato client";
+              this.alertErrorDescription = "Errore durante l'aggiunta del like, riprovare più tardi";
+            }
+            const toastAlert = new bootstrap.Toast(document.querySelector(".toast"));
+            toastAlert.show();
           });
         }
       }

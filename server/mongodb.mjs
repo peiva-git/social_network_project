@@ -2,7 +2,7 @@ import {MongoClient, ObjectId} from "mongodb";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 
-export const mongoUri = "mongodb://mongo:27017";
+export const mongoUri = "mongodb://localhost:27017";
 
 const dbName = "programmazionewebdb";
 const usersCollection = "users";

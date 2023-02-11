@@ -12,7 +12,9 @@
             <div class="col-12">
               <div class="form-floating mb-3">
                 <input type="text" id="inputUsername" placeholder="mariorossi" required
-                       v-model="newUser.username" :class="registrationUsernameClass"
+                       v-model="newUser.username"
+                       class="form-control"
+                       :class="{'is-valid': isUsernameValid, 'is-invalid': isUsernameInvalid}"
                        @input="isRegistrationUsernameNotEmpty"/>
                 <label for="inputUsername">Username utente</label>
                 <div class="valid-feedback">Username valido!</div>
@@ -22,7 +24,10 @@
             <div class="col-6">
               <div class="form-floating mb-3">
                 <input type="text" id="inputName" placeholder="Mario" required
-                       v-model="newUser.name" :class="registrationNameClass" @input="isRegistrationNameNotEmpty"/>
+                       v-model="newUser.name"
+                       class="form-control"
+                       :class="{'is-valid': isNameValid, 'is-invalid': isNameInvalid}"
+                       @input="isRegistrationNameNotEmpty"/>
                 <label for="inputName">Nome utente</label>
                 <div class="valid-feedback">Nome utente valido!</div>
                 <div class="invalid-feedback">Campo obbligatorio!</div>
@@ -31,7 +36,9 @@
             <div class="col-6">
               <div class="form-floating mb-3">
                 <input type="text" id="inputSurname" placeholder="Rossi" required
-                       v-model="newUser.surname" :class="registrationSurnameClass"
+                       v-model="newUser.surname"
+                       class="form-control"
+                       :class="{'is-valid': isSurnameValid, 'is-invalid': isSurnameInvalid}"
                        @input="isRegistrationSurnameNotEmpty"/>
                 <label for="inputSurname">Cognome utente</label>
                 <div class="valid-feedback">Congome utente valido!</div>
@@ -41,7 +48,9 @@
             <div class="col-6">
               <div class="form-floating mb-3">
                 <input type="password" id="inputPassword" placeholder="Password" required
-                       v-model="newUser.password" :class="registrationPasswordClass"
+                       v-model="newUser.password"
+                       class="form-control"
+                       :class="{'is-valid': isPasswordValid, 'is-invalid': isPasswordInvalid}"
                        @input="registrationPasswordsMatchAndNotEmpty"/>
                 <label for="inputPassword">Password</label>
                 <div class="valid-feedback">Password valida!</div>
@@ -51,7 +60,9 @@
             <div class="col-6">
               <div class="form-floating mb-3">
                 <input type="password" id="inputPasswordConfirm" placeholder="Confirm password" required
-                       v-model="newUser.confirmPassword" :class="registrationPasswordConfirmClass"
+                       v-model="newUser.confirmPassword"
+                       class="form-control"
+                       :class="{'is-valid': isPasswordConfirmValid, 'is-invalid': isPasswordConfirmInvalid}"
                        @input="registrationPasswordsMatchAndNotEmpty"/>
                 <label for="inputPasswordConfirm">Conferma password</label>
               </div>
@@ -59,7 +70,9 @@
             <div class="col-12">
               <div class="form-floating mb-3">
                 <input type="text" id="inputBio" class="form-control" placeholder="Bio" required
-                       v-model="newUser.bio" :class="registrationBioClass" @input="isRegistrationBioNotEmpty"/>
+                       v-model="newUser.bio"
+                       :class="{'is-valid': isBioValid, 'is-invalid': isBioInvalid}"
+                       @input="isRegistrationBioNotEmpty"/>
                 <label for="inputBio">Inserire bio descrittiva</label>
                 <div class="valid-feedback">Bio valida!</div>
                 <div class="invalid-feedback">Campo obbligatorio!</div>
@@ -68,7 +81,9 @@
             <div class="col-12">
               <div class="form-check">
                 <input type="checkbox" id="privacyCheck" required
-                       v-model="privacyAgreementChecked" :class="registrationPrivacyAgreementCLass"
+                       v-model="privacyAgreementChecked"
+                       class="form-check-input"
+                       :class="{'is-valid': isPrivacyAgreementValid, 'is-invalid': isPrivacyAgreementInvalid}"
                        @change="isPrivacyAgreementChecked"/>
                 <label class="form-check-label" for="privacyCheck">Acconsento al trattamento dei miei dati
                   personali</label>
@@ -95,13 +110,20 @@ export default {
   name: 'RegistrationModalDialog',
   data() {
     return {
-      registrationUsernameClass: 'form-control',
-      registrationPasswordClass: 'form-control',
-      registrationPasswordConfirmClass: 'form-control',
-      registrationNameClass: 'form-control',
-      registrationSurnameClass: 'form-control',
-      registrationBioClass: 'form-control',
-      registrationPrivacyAgreementCLass: 'form-check-input',
+      isUsernameValid: false,
+      isUsernameInvalid: false,
+      isPasswordValid: false,
+      isPasswordInvalid: false,
+      isPasswordConfirmValid: false,
+      isPasswordConfirmInvalid: false,
+      isNameValid: false,
+      isNameInvalid: false,
+      isSurnameValid: false,
+      isSurnameInvalid: false,
+      isBioValid: false,
+      isBioInvalid: false,
+      isPrivacyAgreementValid: false,
+      isPrivacyAgreementInvalid: false,
       privacyAgreementChecked: false,
       registrationUsernameErrorMessage: '',
       newUser: {
@@ -140,13 +162,14 @@ export default {
         const modal = bootstrap.Modal.getInstance(document.getElementById("registrationModal"));
         document.getElementById("registrationModal").addEventListener("hidden.bs.modal", () => {
           this.$router.replace({name: "UserProfile", params: {userId: "myaccount"}});
-        });
-        modal.hide();
+        }, true);
         document.cookie = `token=${response.data.token}`;
         this.store.setUserAuthenticated(true);
         this.store.setAuthenticatedUsername(this.newUser.username);
+        modal.hide();
       }).catch(error => {
-        this.registrationUsernameClass = "form-control is-invalid";
+        this.isUsernameValid = false;
+        this.isUsernameInvalid = true;
         if (error.response) {
           if (error.response.status === 400) {
             this.registrationUsernameErrorMessage = "Username non disponibile!";
@@ -158,64 +181,76 @@ export default {
         } else {
           this.registrationUsernameErrorMessage = "Errore lato client, riprovare";
         }
-        console.log(error.config);
-        console.log(error);
       });
     },
     isRegistrationUsernameNotEmpty() {
       if (this.newUser.username !== '') {
-        this.registrationUsernameClass = 'form-control is-valid';
+        this.isUsernameValid = true;
+        this.isUsernameInvalid = !this.isUsernameValid;
         return true;
       } else {
-        this.registrationUsernameClass = 'form-control is-invalid';
+        this.isUsernameInvalid = true;
+        this.isUsernameValid = !this.isUsernameInvalid;
         this.registrationUsernameErrorMessage = "Campo obbligatorio!";
         return false;
       }
     },
     registrationPasswordsMatchAndNotEmpty() {
       if (this.newUser.password === this.newUser.confirmPassword && this.newUser.password !== '') {
-        this.registrationPasswordClass = 'form-control is-valid';
-        this.registrationPasswordConfirmClass = 'form-control is-valid';
+        this.isPasswordValid = true;
+        this.isPasswordInvalid = !this.isPasswordValid;
+        this.isPasswordConfirmValid = true;
+        this.isPasswordConfirmInvalid = !this.isPasswordConfirmValid;
         return true;
       } else {
-        this.registrationPasswordClass = 'form-control is-invalid';
-        this.registrationPasswordConfirmClass = 'form-control is-invalid';
+        this.isPasswordInvalid = true;
+        this.isPasswordValid = !this.isPasswordInvalid;
+        this.isPasswordConfirmInvalid = true;
+        this.isPasswordConfirmValid = !this.isPasswordConfirmInvalid;
         return false;
       }
     },
     isRegistrationNameNotEmpty() {
       if (this.newUser.name !== '') {
-        this.registrationNameClass = 'form-control is-valid';
+        this.isNameValid = true;
+        this.isNameInvalid = !this.isNameValid;
         return true;
       } else {
-        this.registrationNameClass = 'form-control is-invalid';
+        this.isNameInvalid = true;
+        this.isNameValid = !this.isNameInvalid;
         return false;
       }
     },
     isRegistrationSurnameNotEmpty() {
       if (this.newUser.surname !== '') {
-        this.registrationSurnameClass = 'form-control is-valid';
+        this.isSurnameValid = true;
+        this.isSurnameInvalid = !this.isSurnameValid;
         return true;
       } else {
-        this.registrationSurnameClass = 'form-control is-invalid';
+        this.isSurnameInvalid = true;
+        this.isSurnameValid = !this.isSurnameInvalid;
         return false;
       }
     },
     isRegistrationBioNotEmpty() {
       if (this.newUser.bio !== '') {
-        this.registrationBioClass = 'form-control is-valid';
+        this.isBioValid = true;
+        this.isBioInvalid = !this.isBioValid;
         return true;
       } else {
-        this.registrationBioClass = 'form-control is-invalid';
+        this.isBioInvalid = true;
+        this.isBioValid = !this.isBioInvalid;
         return false;
       }
     },
     isPrivacyAgreementChecked() {
       if (this.privacyAgreementChecked) {
-        this.registrationPrivacyAgreementCLass = 'form-check-input is-valid';
+        this.isPrivacyAgreementValid = true;
+        this.isPrivacyAgreementInvalid = !this.isPrivacyAgreementValid;
         return true;
       } else {
-        this.registrationPrivacyAgreementCLass = 'form-check-input is-invalid';
+        this.isPrivacyAgreementInvalid = true;
+        this.isPrivacyAgreementValid = !this.isPrivacyAgreementInvalid;
         return false;
       }
     }

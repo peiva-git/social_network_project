@@ -1,5 +1,5 @@
 <template>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
     <div class="container-fluid">
       <a class="navbar-brand">My social network app</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent"
@@ -17,7 +17,7 @@
             </a>
             <ul class="dropdown-menu">
               <li><router-link to="/users/myaccount" class="dropdown-item">Il mio account</router-link></li>
-              <li><router-link to="#" @click.prevent="goToLoginPage" class="dropdown-item">Logout</router-link></li>
+              <li><router-link to="#" @click.prevent="logout" class="dropdown-item">Logout</router-link></li>
             </ul>
           </li>
         </ul>
@@ -49,7 +49,7 @@ export default {
     }
   },
   methods: {
-    goToLoginPage() {
+    logout() {
       this.store.setUserAuthenticated(false);
       this.store.setAuthenticatedUsername(null);
       document.cookie = "token=;";

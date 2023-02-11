@@ -2,14 +2,20 @@
   <form class="position-absolute top-50 start-50 translate-middle" novalidate>
     <div class="form-floating mb-3">
       <input type="text" id="username" placeholder="mariorossi" required
-             v-model="user.username" :class="loginUsernameClass" @input="isLoginUsernameNotEmpty"/>
+             v-model="user.username"
+             class="form-control"
+             :class="{'is-valid': isUsernameValid, 'is-invalid': isUsernameInvalid}"
+             @input="isLoginUsernameNotEmpty"/>
       <label for="username">Username utente</label>
       <div class="valid-feedback">Username valido!</div>
       <div class="invalid-feedback">{{ loginUsernameErrorMessage }}</div>
     </div>
     <div class="form-floating mb-3">
       <input type="password" id="userPassword" placeholder="Password" required
-             v-model="user.password" :class="loginPasswordClass" @input="isLoginPasswordNotEmpty"/>
+             v-model="user.password"
+             class="form-control"
+             :class="{'is-valid': isPasswordValid, 'is-invalid': isPasswordInvalid}"
+             @input="isLoginPasswordNotEmpty"/>
       <label for="userPassword">Password</label>
       <div class="valid-feedback">Password valida!</div>
       <div class="invalid-feedback">{{ loginPasswordErrorMessage }}</div>
@@ -37,8 +43,10 @@ export default {
   components: {RegistrationModalDialog},
   data() {
     return {
-      loginUsernameClass: 'form-control',
-      loginPasswordClass: 'form-control',
+      isUsernameValid: false,
+      isUsernameInvalid: false,
+      isPasswordValid: false,
+      isPasswordInvalid: false,
       loginUsernameErrorMessage: '',
       loginPasswordErrorMessage: '',
       user: {
@@ -61,16 +69,16 @@ export default {
       axios.post(serverURL + "/api/auth/signin", {
         username: this.user.username,
         password: this.user.password
-      }, {
-        headers: {"Accept": "application/json", "Content-Type": "application/json"}
       }).then(response => {
         document.cookie = `token=${response.data.token}`;
         this.store.setUserAuthenticated(true);
         this.store.setAuthenticatedUsername(this.user.username);
         this.$router.replace({name: "UserProfile", params: {userId: "myaccount"}});
       }).catch(error => {
-        this.loginUsernameClass = "form-control is-invalid";
-        this.loginPasswordClass = "form-control is-invalid";
+        this.isUsernameValid = false;
+        this.isUsernameInvalid = true;
+        this.isPasswordValid = false;
+        this.isPasswordInvalid = true;
         if (error.response) {
           if (error.response.status === 400) {
             this.loginUsernameErrorMessage = "Credenziali errate!";
@@ -86,25 +94,28 @@ export default {
           this.loginUsernameErrorMessage = "Errore lato client, riprovare";
           this.loginPasswordErrorMessage = "Errore lato client, riprovare";
         }
-        console.log(error.config);
       });
     },
     isLoginUsernameNotEmpty() {
       if (this.user.username !== '') {
-        this.loginUsernameClass = 'form-control is-valid';
+        this.isUsernameValid = true;
+        this.isUsernameInvalid = !this.isUsernameValid;
         return true;
       } else {
-        this.loginUsernameClass = 'form-control is-invalid';
+        this.isUsernameInvalid = true;
+        this.isUsernameValid = !this.isUsernameInvalid;
         this.loginUsernameErrorMessage = "Campo obbligatorio!";
         return false;
       }
     },
     isLoginPasswordNotEmpty() {
       if (this.user.password !== '') {
-        this.loginPasswordClass = 'form-control is-valid';
+        this.isPasswordValid = true;
+        this.isPasswordInvalid = !this.isPasswordValid;
         return true;
       } else {
-        this.loginPasswordClass = 'form-control is-invalid';
+        this.isPasswordInvalid = true;
+        this.isPasswordValid = !this.isPasswordInvalid;
         this.loginPasswordErrorMessage = "Campo obbligatorio!";
         return false;
       }

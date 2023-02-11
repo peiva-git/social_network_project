@@ -13,9 +13,10 @@
                 <input type="text" id="inputNewMessage" placeholder="Nuovo messaggio" required
                        @input="isMessageNotEmpty"
                        v-model="text"
-                       :class="inputMessageClass"/>
+                       class="form-control"
+                       :class="{'is-valid': isValid, 'is-invalid': isInvalid}"/>
                 <label for="inputNewMessage">Scrivi il tuo nuovo messaggio qui</label>
-                <div class="invalid-feedback">Campo obbligatorio!</div>
+                <div class="invalid-feedback">{{errorMessage}}</div>
               </div>
             </div>
           </form>
@@ -32,7 +33,6 @@
 <script>
 import axios from "axios";
 import {serverURL} from "@/js/main";
-import {useMessagePostedStore} from "@/js/stores/useMessagePostedStore";
 import bootstrap from "/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js";
 
 export default {
@@ -40,13 +40,17 @@ export default {
   data() {
     return {
       text: "",
-      inputMessageClass: "form-control"
+      isValid: false,
+      isInvalid: false,
+      errorMessage: ""
     }
   },
-  setup() {
-    const store = useMessagePostedStore();
-    return {
-      store
+  emits: {
+    newMessagePosted(message) {
+      if (!message) {
+        return false;
+      }
+      return !(!message.text || !message.likes || !message.date);
     }
   },
   methods: {
@@ -57,27 +61,35 @@ export default {
       axios.post(serverURL + "/api/social/messages", {
         text: this.text
       }).then(() => {
-        this.store.toggleMessagePosted();
+        this.$emit("newMessagePosted", {
+          text: this.text,
+          likes: [],
+          date: new Date()
+        });
         const modal = bootstrap.Modal.getInstance(document.getElementById("newMessageModal"));
         modal.hide();
         this.text = "";
-        this.inputMessageClass = "form-control";
+        this.isValid = false;
+        this.isInvalid = false;
       }).catch(error => {
         if (error.response) {
-          console.log(error.response);
+          this.errorMessage = "Errore lato server, riprovare";
         } else if (error.request) {
-          console.log(error.request);
+          this.errorMessage = "Server non raggiungibile, riprovare";
         } else {
-          console.log(error);
+          this.errorMessage = "Errore lato client, riprovare";
         }
       });
     },
     isMessageNotEmpty() {
       if (this.text !== "") {
-        this.inputMessageClass = "form-control is-valid";
+        this.isValid = true;
+        this.isInvalid = !this.isValid;
         return true;
       } else {
-        this.inputMessageClass = "form-control is-invalid";
+        this.errorMessage = "Campo obbligatorio!";
+        this.isValid = false;
+        this.isInvalid = !this.isValid;
         return false;
       }
     }
@@ -86,5 +98,4 @@ export default {
 </script>
 
 <style scoped>
-
 </style>

@@ -6,6 +6,7 @@ import SearchedUsers from "@/components/SearchedUsers.vue";
 import UserProfile from "@/components/UserProfile.vue";
 import {createPinia} from "pinia";
 import {useIsUserAuthenticatedStore} from "@/js/stores/useIsUserAuthenticatedStore";
+import NotFound from "@/components/NotFound.vue";
 
 export const serverURL = "http://localhost:8080";
 export const userAuthenticatedKey = "userAuth";
@@ -41,7 +42,20 @@ const routes = [
     {
         path: "/users/:userId",
         component: UserProfile,
-        name: "UserProfile"
+        name: "UserProfile",
+        beforeEnter: (to) => {
+            if (to.params.userId === "myaccount") {
+                const store = useIsUserAuthenticatedStore(pinia);
+                if (!store.isUserAuthenticated) {
+                    return {path: "/login"};
+                }
+            }
+        }
+    },
+    {
+        path: "/:pathMatch(.*)*",
+        component: NotFound,
+        name: "NotFound"
     }
 ];
 
