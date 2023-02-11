@@ -167,7 +167,7 @@ export default {
           this.error.data.message = "Errore durante l'invio della richiesta, riprovare";
         }
       });
-      if (this.$route.params.userId !== "myaccount") {
+      if (this.$route.params.userId !== "myaccount" && this.store.isUserAuthenticated) {
         axios.get(serverURL + "/api/social/followers/" + this.$route.params.userId).then(response => {
           if (response.data) {
             this.followers = response.data;
