@@ -110,12 +110,7 @@ export default {
     newPostedMessage: {
       handler(newMessage) {
         if (newMessage) {
-          this.messages.push(newMessage);
-          this.messages.sort((firstMessage, secondMessage) => {
-            const firstMessageDate = new Date(firstMessage.date);
-            const secondMessageDate = new Date(secondMessage.date);
-            return secondMessageDate.getTime() - firstMessageDate.getTime();
-          });
+          this.fetchMessages();
         }
       },
       immediate: true
